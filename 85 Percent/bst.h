@@ -96,8 +96,8 @@ public:
    // Status
    //
 
-   bool   empty() const noexcept { return true; }
-   size_t size()  const noexcept { return 99;   }
+   bool   empty() const noexcept { return numElements <0 ? true: false; }
+   size_t size()  const noexcept { return numElements;   }
    
 private:
 
@@ -119,17 +119,16 @@ public:
    // 
    // Construct
    //
-   BNode()
+   BNode(): pLeft(nullptr), pRight(nullptr), pParent(nullptr), data(0), isRed(NULL)
    {
-      pLeft = pRight = this;
+  
    }
-   BNode(const T &  t) 
+   BNode(const T &  t):pLeft(nullptr), pRight(nullptr), pParent(nullptr), data(t), isRed(NULL)
    {
-      pLeft = pRight = this;
+
    }
-   BNode(T && t) 
-   {  
-      pLeft = pRight = this;
+   BNode(T && t): pLeft(nullptr), pRight(nullptr), pParent(nullptr), data(std::move(t)), isRed(NULL)
+   {
    }
 
    //
@@ -141,6 +140,10 @@ public:
    void addRight(const T &  t);
    void addLeft(       T && t);
    void addRight(      T && t);
+   
+   void clear(BNode  * &pThis);
+   
+   void assign(BNode *&pDest, const BNode *pSrc);
 
    // 
    // Status
@@ -171,10 +174,8 @@ public:
   * BST :: DEFAULT CONSTRUCTOR
   ********************************************/
 template <typename T>
-BST <T> ::BST()
+BST <T> ::BST(): numElements(0), root(NULL)
 {
-   root = nullptr;
-   numElements = 0;
 }
 
 /*********************************************
@@ -182,11 +183,11 @@ BST <T> ::BST()
  * Copy one tree to another
  ********************************************/
 template <typename T>
-BST <T> :: BST ( const BST<T>& rhs) 
+BST <T> :: BST ( const BST<T>& rhs) : numElements(0), root(nullptr)
 {
-   root = nullptr;
-   numElements = 0;
-   *this = rhs;
+    // Allocate the Node
+      *this = rhs;
+
 }
 
 /*********************************************
@@ -194,15 +195,13 @@ BST <T> :: BST ( const BST<T>& rhs)
  * Move one tree to another
  ********************************************/
 template <typename T>
-BST <T> :: BST(BST <T> && rhs) 
+BST <T> :: BST(BST <T> && rhs): numElements(0), root(NULL)
 {
    root = rhs.root;
    numElements = rhs.numElements;
-
+   
    rhs.root = nullptr;
    rhs.numElements = 0;
-
-
 }
 
 /*********************************************
@@ -222,10 +221,8 @@ BST <T> :: ~BST()
 template <typename T>
 BST <T> & BST <T> :: operator = (const BST <T> & rhs)
 {
-   
-   root = nullptr;
-   numElements = 0;
-//   *this = rhs;
+   root->assign(root, rhs.root);
+   numElements = rhs.numElements;
    return *this;
 }
 
@@ -236,8 +233,6 @@ BST <T> & BST <T> :: operator = (const BST <T> & rhs)
 template <typename T>
 BST <T> & BST <T> :: operator = (const std::initializer_list<T>& il)
 {
-   root = nullptr;
-   numElements = 0;
    return *this;
 }
 
@@ -248,6 +243,9 @@ BST <T> & BST <T> :: operator = (const std::initializer_list<T>& il)
 template <typename T>
 BST <T> & BST <T> :: operator = (BST <T> && rhs)
 {
+   clear();
+   
+   swap(rhs);
    return *this;
 }
 
@@ -258,7 +256,13 @@ BST <T> & BST <T> :: operator = (BST <T> && rhs)
 template <typename T>
 void BST <T> :: swap (BST <T>& rhs)
 {
-
+   BNode * tempRoot = rhs.root;
+   rhs.root = root;
+   root = tempRoot;
+   
+   size_t tempElements = rhs.numElements;
+   rhs.numElements = numElements;
+   numElements = tempElements;
 }
 
 /*****************************************************
@@ -268,6 +272,31 @@ void BST <T> :: swap (BST <T>& rhs)
 template <typename T>
 bool BST <T> :: insert(const T & t, bool keepUnique)
 {
+   BNode * currentNode = root;
+   
+   bool found = false;
+   while(!found && currentNode!= nullptr)
+   {
+      if(t < currentNode->data)
+      {
+         if(currentNode->pLeft == nullptr)
+         {
+            currentNode->addLeft(t);
+            found = true;
+         }
+         else
+            currentNode = currentNode->pLeft;
+      }
+      else {
+         if(currentNode->pRight == nullptr)
+         {
+            currentNode->addRight(t);
+            found = true;
+         }else {
+            currentNode = currentNode->pRight;
+         }
+      }
+   }
    return false;
 }
 
@@ -284,6 +313,18 @@ bool BST <T> ::insert(T && t, bool keepUnique)
 template <typename T>
 const T* BST<T>::find(const T& t) const
 {
+   BNode * currentNode = root;
+   
+   while(currentNode != nullptr)
+   {
+     if(currentNode->data == t)
+     {
+        return &currentNode->data;
+     } else if (t < currentNode->data)
+        currentNode = currentNode->pLeft;
+      else
+         currentNode = currentNode->pRight;
+   }
    return nullptr;
 }
 
@@ -294,7 +335,20 @@ const T* BST<T>::find(const T& t) const
 template <typename T>
 T* BST<T>::find(const T& t)
 {
+   BNode * currentNode = root;
+   
+   while(currentNode != nullptr)
+   {
+     if(currentNode->data == t)
+     {
+        return &currentNode->data;
+     } else if (t < currentNode->data)
+        currentNode = currentNode->pLeft;
+      else
+         currentNode = currentNode->pRight;
+   }
    return nullptr;
+  
 }
 
 
@@ -305,7 +359,9 @@ T* BST<T>::find(const T& t)
 template <typename T>
 void BST <T> ::clear() noexcept
 {
-
+   root->clear(root);
+   numElements = 0;
+   root= nullptr;
 }
 
 
@@ -335,7 +391,7 @@ bool BST <T> ::erase(const T& t)
 template <typename T>
 void BST <T> :: BNode :: addLeft (BNode * pNode)
 {
-
+   pLeft = pNode;
 }
 
 /******************************************************
@@ -345,7 +401,7 @@ void BST <T> :: BNode :: addLeft (BNode * pNode)
 template <typename T>
 void BST <T> :: BNode :: addRight (BNode * pNode)
 {
-
+   pRight = pNode;
 }
 
 /******************************************************
@@ -355,7 +411,8 @@ void BST <T> :: BNode :: addRight (BNode * pNode)
 template <typename T>
 void BST<T> :: BNode :: addLeft (const T & t)
 {
-
+   pLeft = new BNode(t);
+   
 }
 
 /******************************************************
@@ -365,7 +422,7 @@ void BST<T> :: BNode :: addLeft (const T & t)
 template <typename T>
 void BST<T> ::BNode::addLeft(T && t)
 {
-
+    pLeft = new BNode(std::move(t));
 }
 
 /******************************************************
@@ -375,7 +432,7 @@ void BST<T> ::BNode::addLeft(T && t)
 template <typename T>
 void BST <T> :: BNode :: addRight (const T & t)
 {
-
+    pRight = new BNode(t);
 }
 
 /******************************************************
@@ -385,10 +442,44 @@ void BST <T> :: BNode :: addRight (const T & t)
 template <typename T>
 void BST <T> ::BNode::addRight(T && t)
 {
+    pRight = new BNode(std::move(t));
+}
+
+template <typename T>
+void BST<T>:: BNode :: clear(BNode *&pThis)
+{
+   if(pThis== nullptr)
+      return;
+   
+   clear(pThis->pLeft);
+   clear(pThis->pRight);
+   delete pThis;
+   pThis = nullptr;
 
 }
 
-
+template <typename T>
+void BST <T>:: BNode:: assign(BNode * &pDest, const BNode *pSrc)
+{
+   if(pSrc == nullptr)
+   {
+      clear(pDest);
+      return;
+   }
+   
+   if(pDest== nullptr)
+      pDest = new BNode(pSrc->data);
+   else
+      pDest->data = pSrc->data;
+   
+   assign(pDest->pLeft, pSrc->pLeft); // L
+   if(pSrc->pLeft)
+      pDest->pLeft->pParent = pDest;
+   
+   assign(pDest->pRight, pSrc->pRight); // R
+   if(pSrc->pRight)
+      pDest->pRight->pParent = pDest;
+}
 
 
 } // namespace custom

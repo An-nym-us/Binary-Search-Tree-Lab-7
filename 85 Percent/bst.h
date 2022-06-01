@@ -173,8 +173,8 @@ public:
 template <typename T>
 BST <T> ::BST()
 {
-   numElements = 99;
-   root = new BNode;
+   root = nullptr;
+   numElements = 0;
 }
 
 /*********************************************
@@ -184,8 +184,9 @@ BST <T> ::BST()
 template <typename T>
 BST <T> :: BST ( const BST<T>& rhs) 
 {
-   numElements = 99;
-   root = new BNode;
+   root = nullptr;
+   numElements = 0;
+   *this = rhs;
 }
 
 /*********************************************
@@ -195,8 +196,13 @@ BST <T> :: BST ( const BST<T>& rhs)
 template <typename T>
 BST <T> :: BST(BST <T> && rhs) 
 {
-   numElements = 99;
-   root = new BNode;
+   root = rhs.root;
+   numElements = rhs.numElements;
+
+   rhs.root = nullptr;
+   rhs.numElements = 0;
+
+
 }
 
 /*********************************************
@@ -216,6 +222,10 @@ BST <T> :: ~BST()
 template <typename T>
 BST <T> & BST <T> :: operator = (const BST <T> & rhs)
 {
+   
+   root = nullptr;
+   numElements = 0;
+//   *this = rhs;
    return *this;
 }
 
@@ -226,6 +236,8 @@ BST <T> & BST <T> :: operator = (const BST <T> & rhs)
 template <typename T>
 BST <T> & BST <T> :: operator = (const std::initializer_list<T>& il)
 {
+   root = nullptr;
+   numElements = 0;
    return *this;
 }
 

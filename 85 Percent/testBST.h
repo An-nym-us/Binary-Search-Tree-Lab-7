@@ -29,42 +29,60 @@ class TestBST : public UnitTest
 {
 
 public:
+   void customTracker()
+   {
+      std::cout << "numLessthan: "<< Spy::numLessthan() << std::endl;
+      std::cout << "numEquals: " << Spy::numEquals() << std::endl;
+      std::cout << "numCopy: " << Spy::numCopy() << std::endl;
+      std::cout << "numAlloc: " << Spy::numAlloc() << std::endl;
+      std::cout << "numDestructorn: " << Spy::numDestructor() << std::endl;
+      std::cout << "numDelete: " << Spy::numDelete() << std::endl;
+      std::cout << "numAssign: " << Spy::numAssign() << std::endl;
+      std::cout << "numDefault: " << Spy::numDefault() << std::endl;
+      std::cout << "numNondefault: " << Spy::numNondefault() << std::endl;
+      std::cout << "numCopyMove: " << Spy::numCopyMove() << std::endl;
+      std::cout << "numAssignMove: " << Spy::numAssignMove() << std::endl;
+
+   }
+
    void run()
    {
       reset();
 
+
+
       // Construct
-     // test_construct_default();
-     // test_constructCopy_empty();
-     // test_constructCopy_one();
-     // test_constructCopy_standard();
-     // test_constructMove_empty();
-     // test_constructMove_one();
-     // test_constructMove_standard();
+      test_construct_default();
+      test_constructCopy_empty();
+      test_constructCopy_one();
+      test_constructCopy_standard();
+      test_constructMove_empty();
+      test_constructMove_one();
+      test_constructMove_standard();
 
      ////Assign
-     // test_assign_emptyToEmpty();
-     // test_assign_standardToEmpty();
-     // test_assign_emptyToStandard();
-     // test_assign_oneToStandard();
-     // test_assign_standardToOne();
-     // test_assign_standardToStandard();
-     // test_assignMove_emptyToEmpty();
-     // test_assignMove_standardToEmpty();
-     // test_assignMove_emptyToStandard();
-     // test_assignMove_oneToStandard();
-     // test_assignMove_standardToOne();
-     // test_assignMove_standardToStandard();
-     // test_swap_emptyToEmpty();
-     // test_swap_standardToEmpty();
-     // test_swap_emptyToStandard();
-     // test_swap_standardToStandard();
+      test_assign_emptyToEmpty();
+      test_assign_standardToEmpty();
+      test_assign_emptyToStandard();
+      test_assign_oneToStandard();
+      test_assign_standardToOne();
+      test_assign_standardToStandard();
+      test_assignMove_emptyToEmpty();
+      test_assignMove_standardToEmpty();
+      test_assignMove_emptyToStandard();
+      test_assignMove_oneToStandard();
+      test_assignMove_standardToOne();
+      test_assignMove_standardToStandard();
+      test_swap_emptyToEmpty();
+      test_swap_standardToEmpty();
+      test_swap_emptyToStandard();
+      test_swap_standardToStandard();
 
      // // Find
-     // test_find_empty();
-     // test_find_standardBegin();
-     // test_find_standardLast();
-     // test_find_standardMissing();
+      test_find_empty();
+      test_find_standardBegin();
+      test_find_standardLast();
+      test_find_standardMissing();
 
       // Insert
       test_insert_oneLeft();
@@ -77,7 +95,7 @@ public:
       test_insertMove_keepUnique();
 
       // Remove
-      //test_erase_empty();
+      test_erase_empty();
       //test_erase_standardMissing();
       //test_erase_noChildren();
       //test_erase_oneChild();
@@ -85,11 +103,11 @@ public:
       //test_clear_empty();
       //test_clear_standard();
 
-      //// Status
-      //test_empty_empty();
-      //test_empty_standard();
-      //test_size_empty();
-      //test_size_standard();
+      // Status
+      test_empty_empty();
+      test_empty_standard();
+      test_size_empty();
+      test_size_standard();
 
       report("BST");
    }
@@ -1683,8 +1701,10 @@ public:
       // exercise
       auto fBST = bst.insert(s, true /* keepUnique */);
       // verify
+
       assertUnit(Spy::numLessthan() == 2);    // compare [50][30]
-      assertUnit(Spy::numEquals() == 3);      // compare [50][30][40]
+      assertUnit(Spy::numEquals() == 3);  
+
       assertUnit(Spy::numCopy() == 0);
       assertUnit(Spy::numAlloc() == 0);
       assertUnit(Spy::numDestructor() == 0);
@@ -1724,6 +1744,9 @@ public:
       // exercise
       auto fBST = bst.insert(std::move(s));
       // verify
+
+     
+
       assertUnit(Spy::numLessthan() == 1);    // compare [50]
       assertUnit(Spy::numCopyMove() == 1);    // assign move [60]
       assertUnit(Spy::numAssignMove() == 0);
@@ -1777,9 +1800,11 @@ public:
       bst.numElements = 1;
       Spy s(40);
       Spy::reset();
-      // exercise
+      // exercise[
       auto fBST = bst.insert(std::move(s));
       // verify
+      //customTracker();
+      
       assertUnit(Spy::numLessthan() == 1);    // compare [50]
       assertUnit(Spy::numCopyMove() == 1);    // assign move [40]
       assertUnit(Spy::numAssignMove() == 0);
@@ -1793,11 +1818,12 @@ public:
       assertUnit(Spy::numNondefault() == 0);
       assertUnit(s.empty() == true);
       assertUnit(fBST == true);
-
+      //customTracker();
       //           (50) 
       //        +----+
       //      (40) 
       assertUnit(bst.size() == 2);
+
       assertUnit(bst.numElements == 2);
       assertUnit(bst.root == p50);
 

@@ -1,4 +1,4 @@
 ﻿  testBST.cpp
-C:\Users\Jonathans Desktop\Documents\Schoolwork\DESIGNING data strucs\Binary-Search-Tree-Lab-7\85 Percent\testBST.h(108,1): warning C4312: 'type cast': conversion from 'unsigned int' to 'custom::BST<Spy>::BNode *' of greater size
-C:\Users\Jonathans Desktop\Documents\Schoolwork\DESIGNING data strucs\Binary-Search-Tree-Lab-7\85 Percent\testBST.h(133,1): warning C4312: 'type cast': conversion from 'unsigned int' to 'custom::BST<Spy>::BNode *' of greater size
+C:\Users\Jonathans Desktop\Documents\Schoolwork\DESIGNING data strucs\Binary-Search-Tree-Lab-7\85 Percent\testBST.h(126,1): warning C4312: 'type cast': conversion from 'unsigned int' to 'custom::BST<Spy>::BNode *' of greater size
+C:\Users\Jonathans Desktop\Documents\Schoolwork\DESIGNING data strucs\Binary-Search-Tree-Lab-7\85 Percent\testBST.h(151,1): warning C4312: 'type cast': conversion from 'unsigned int' to 'custom::BST<Spy>::BNode *' of greater size
   LabBST.vcxproj -> C:\Users\Jonathans Desktop\Documents\Schoolwork\DESIGNING data strucs\Binary-Search-Tree-Lab-7\85 Percent\x64\Debug\LabBST.exe

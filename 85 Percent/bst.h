@@ -29,6 +29,7 @@
 #include <memory>     // for std::allocator
 #include <functional> // for std::less
 #include <utility>    // for std::pair
+#include <iostream>
  
 class TestBST;        // forward declaration for unit tests
 class TestSet;
@@ -273,36 +274,134 @@ template <typename T>
 bool BST <T> :: insert(const T & t, bool keepUnique)
 {
    BNode * currentNode = root;
+
+  
    
    bool found = false;
-   while(!found && currentNode!= nullptr)
+   while (!found && currentNode != nullptr)
    {
-      if(t < currentNode->data)
+      if (keepUnique == false)
       {
-         if(currentNode->pLeft == nullptr)
+         BNode* newNode = new BNode(t);
+         if (newNode->data < currentNode->data)
          {
-            currentNode->addLeft(t);
+
+            currentNode->pLeft = newNode;
+            newNode->pParent = root;
+            numElements += 1;
             found = true;
+            return true;
+
          }
          else
-            currentNode = currentNode->pLeft;
-      }
-      else {
-         if(currentNode->pRight == nullptr)
          {
-            currentNode->addRight(t);
+            currentNode->pRight = newNode;
+            newNode->pParent = root;
+            numElements += 1;
             found = true;
-         }else {
-            currentNode = currentNode->pRight;
+            return true;
          }
       }
+
+
+      else
+      {
+         if (t == currentNode->data)
+         {
+            found = true;
+            return false;
+         }
+         else if (t < currentNode->data)
+         {
+            if (currentNode->pLeft != nullptr)
+            {
+               currentNode = currentNode->pLeft;
+            }
+         }
+         else
+         {
+            if (currentNode->pRight != nullptr)
+            {
+               currentNode = currentNode->pRight;
+            }
+         }
+      }
+
+
    }
    return false;
+
+
 }
+
+
+
+
 
 template <typename T>
 bool BST <T> ::insert(T && t, bool keepUnique)
 {
+   BNode* currentNode = root;
+
+
+
+   bool found = false;
+
+
+   while (!found && currentNode != nullptr)
+   {
+      if (keepUnique == false)
+      {
+         if (t < currentNode->data)
+         {
+            BNode* newNode = new BNode(std::move(t));
+            currentNode->pLeft = newNode;
+            newNode->pParent = currentNode;
+            numElements += 1;
+
+            found = true;
+            return true;
+         }
+         else
+         {
+            BNode* newNode = new BNode(std::move(t));
+            currentNode->pRight = newNode;
+            newNode->pParent = currentNode;
+            numElements += 1;
+
+            found = true;
+            return true;
+         }
+      }
+
+
+      else
+      {
+         if (t == currentNode->data)
+         {
+            found = true;
+            return false;
+         }
+         else if (t < currentNode->data)
+         {
+            if (currentNode->pLeft != nullptr)
+            {
+               currentNode = currentNode->pLeft;
+            }
+         }
+         else
+         {
+            if (currentNode->pRight != nullptr)
+            {
+               currentNode = currentNode->pRight;
+            }
+         }
+      }
+
+      
+
+
+   }
    return false;
 }
 

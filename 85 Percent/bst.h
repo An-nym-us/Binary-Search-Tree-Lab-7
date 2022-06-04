@@ -98,8 +98,9 @@ public:
    // 
    // Status
    //
+   
 
-   bool   empty() const noexcept { return numElements <0 ? true: false; }
+   bool   empty() const noexcept { return numElements <=0 ? true: false; }
    size_t size()  const noexcept { return numElements;   }
    
 private:
@@ -153,6 +154,8 @@ public:
    //
    bool isRightChild(BNode * pNode) const { return true; }
    bool isLeftChild( BNode * pNode) const { return true; }
+//
+   BNode* findMinNode();
 
    //
    // Data
@@ -276,9 +279,6 @@ template <typename T>
 bool BST <T> :: insert(const T & t, bool keepUnique)
 {
    BNode * currentNode = root;
-
-  
-   
    bool found = false;
    while (!found && currentNode != nullptr)
    {
@@ -304,7 +304,6 @@ bool BST <T> :: insert(const T & t, bool keepUnique)
             return true;
          }
       }
-
 
       else
       {
@@ -332,21 +331,13 @@ bool BST <T> :: insert(const T & t, bool keepUnique)
 
    }
    return false;
-
-
 }
-
-
-
-
 
 template <typename T>
 bool BST <T> ::insert(T && t, bool keepUnique)
 {
    BNode* currentNode = root;
-
-
-
+   
    bool found = false;
 
 
@@ -375,8 +366,6 @@ bool BST <T> ::insert(T && t, bool keepUnique)
             return true;
          }
       }
-
-
       else
       {
          if (t == currentNode->data)
@@ -399,9 +388,6 @@ bool BST <T> ::insert(T && t, bool keepUnique)
             }
          }
       }
-
-      
-
 
    }
    return false;
@@ -473,7 +459,111 @@ void BST <T> ::clear() noexcept
 template <typename T>
 bool BST <T> ::erase(const T& t)
 {
-   return true;
+   BNode * currentNode = root;
+   
+   while(currentNode != nullptr)
+   {
+      if(currentNode->data == t)
+      {
+         // Case No Child
+         if(currentNode->pRight == nullptr && currentNode->pLeft == nullptr)
+         {
+            if(currentNode->pParent != nullptr && currentNode->pParent->pRight == currentNode)
+            {
+               currentNode->pParent->pRight = nullptr;
+            }
+            
+            if(currentNode->pParent != nullptr && currentNode->pParent->pLeft == currentNode)
+            {
+               currentNode->pParent->pLeft = nullptr;
+            }
+            numElements--;
+            delete currentNode;
+            return true;
+         }
+         
+         // Case One Child
+      if(currentNode->pRight == NULL && currentNode->pLeft != NULL)
+      {
+         currentNode->pLeft->pParent = currentNode->pParent;
+         
+         if(currentNode->pParent != NULL && currentNode->pParent->pRight == currentNode)
+         {
+            currentNode->pParent->pRight = currentNode->pLeft;
+         }
+         if(currentNode->pParent != NULL && currentNode->pParent->pLeft == currentNode)
+         {
+            currentNode->pParent->pLeft = currentNode->pLeft;
+         }
+         numElements--;
+         delete currentNode;
+         return true;
+      }
+         
+      if(currentNode->pLeft == NULL && currentNode->pRight != NULL)
+         {
+            currentNode->pRight->pParent = currentNode->pParent;
+            
+            if(currentNode->pParent != NULL && currentNode->pParent->pRight == currentNode)
+            {
+               currentNode->pParent->pRight = currentNode->pRight;
+            }
+            if(currentNode->pParent != NULL && currentNode->pParent->pLeft == currentNode)
+            {
+               currentNode->pParent->pLeft = currentNode->pRight;
+            }
+            numElements--;
+            delete currentNode;
+            return true;
+         }
+         
+         
+         // Case Two Childs
+         if(currentNode->pLeft!= nullptr && currentNode->pRight != nullptr)
+         {
+            BNode * tempNode = currentNode->pRight;
+            while(tempNode->pLeft != NULL)
+            {
+               tempNode = tempNode->pLeft;
+            }
+
+            BNode * deleteNode = currentNode;
+
+            if(tempNode->pRight!= NULL)
+            {
+               tempNode->pRight->pParent = tempNode->pParent;
+               tempNode->pParent->pLeft = tempNode->pRight;
+            }
+            
+            currentNode->pParent->pLeft = tempNode;
+            currentNode->pParent->pLeft->pParent = deleteNode->pParent;
+            // LEFT CHILD
+            currentNode->pParent->pLeft->pLeft = deleteNode->pLeft;
+            currentNode->pParent->pLeft->pLeft->pParent = currentNode->pParent->pLeft;
+            
+            // RIGHT CHILD
+            
+            currentNode->pParent->pLeft->pRight = deleteNode->pRight;
+            currentNode->pParent->pLeft->pRight->pParent = currentNode->pParent->pLeft;
+            
+         
+   
+            numElements--;
+            delete deleteNode;
+            return true;
+            
+         }
+  
+   
+      } else if (t < currentNode->data)
+      {
+         currentNode = currentNode->pLeft;
+      }
+      else {
+         currentNode= currentNode->pRight;
+      }
+   }
+   return false;
 }
 
 /******************************************************
@@ -584,5 +674,9 @@ void BST <T>:: BNode:: assign(BNode * &pDest, const BNode *pSrc)
 
 
 } // namespace custom
-
+//template <typename T>
+//BST<T>:: BNode:: findMinNode()
+//{
+//
+//}
 

@@ -114,8 +114,8 @@ public:
    // Status
    //
 
-   bool   empty() const noexcept { return true; }
-   size_t size()  const noexcept { return 99;   }
+   bool   empty() const noexcept { return numElements <=0 ? true: false; }
+   size_t size()  const noexcept { return numElements;   }
    
 
 private:
@@ -135,20 +135,19 @@ template <typename T>
 class BST <T> :: BNode
 {
 public:
-   // 
+   //
    // Construct
    //
-   BNode()
+   BNode(): pLeft(nullptr), pRight(nullptr), pParent(nullptr), data(0), isRed(NULL)
    {
-      pLeft = pRight = this;
+  
    }
-   BNode(const T &  t) 
+   BNode(const T &  t):pLeft(nullptr), pRight(nullptr), pParent(nullptr), data(t), isRed(NULL)
    {
-      pLeft = pRight = this; 
+
    }
-   BNode(T && t) 
-   {  
-      pLeft = pRight = this;
+   BNode(T && t): pLeft(nullptr), pRight(nullptr), pParent(nullptr), data(std::move(t)), isRed(NULL)
+   {
    }
 
    //
@@ -160,6 +159,9 @@ public:
    void addRight(const T &  t);
    void addLeft(       T && t);
    void addRight(      T && t);
+   
+   void clear(BNode  * &pThis);
+   void assign(BNode *&pDest, const BNode *pSrc);
 
    // 
    // Status
@@ -195,25 +197,28 @@ class BST <T> :: iterator
    friend class set; 
 public:
    // constructors and assignment
-   iterator(BNode * p = nullptr)          
-   { 
+   iterator(BNode * p = nullptr) : pNode(p)
+   {
+
    }
-   iterator(const iterator & rhs)         
-   { 
+   iterator(const iterator & rhs): pNode(nullptr)
+   {
+      *this = rhs;
    }
    iterator & operator = (const iterator & rhs)
    {
+      pNode = rhs.pNode;
       return *this;
    }
 
    // compare
    bool operator == (const iterator & rhs) const
    {
-      return true;
+      return pNode == rhs.pNode;
    }
    bool operator != (const iterator & rhs) const
    {
-      return true;
+      return pNode != rhs.pNode;
    }
 
    // de-reference. Cannot change because it will invalidate the BST
@@ -257,10 +262,8 @@ private:
   * BST :: DEFAULT CONSTRUCTOR
   ********************************************/
 template <typename T>
-BST <T> ::BST()
+BST <T> ::BST(): numElements(0), root(NULL)
 {
-   numElements = 99;
-   root = new BNode;
 }
 
 /*********************************************
@@ -268,10 +271,11 @@ BST <T> ::BST()
  * Copy one tree to another
  ********************************************/
 template <typename T>
-BST <T> :: BST ( const BST<T>& rhs) 
+BST <T> :: BST ( const BST<T>& rhs) : numElements(0), root(nullptr)
 {
-   numElements = 99;
-   root = new BNode;
+    // Allocate the Node
+      *this = rhs;
+
 }
 
 /*********************************************
@@ -279,10 +283,13 @@ BST <T> :: BST ( const BST<T>& rhs)
  * Move one tree to another
  ********************************************/
 template <typename T>
-BST <T> :: BST(BST <T> && rhs) 
+BST <T> :: BST(BST <T> && rhs): numElements(0), root(NULL)
 {
-   numElements = 99;
-   root = new BNode;
+   root = rhs.root;
+   numElements = rhs.numElements;
+   
+   rhs.root = nullptr;
+   rhs.numElements = 0;
 }
 
 /*********************************************
@@ -302,6 +309,8 @@ BST <T> :: ~BST()
 template <typename T>
 BST <T> & BST <T> :: operator = (const BST <T> & rhs)
 {
+   root->assign(root, rhs.root);
+   numElements = rhs.numElements;
    return *this;
 }
 
@@ -322,9 +331,11 @@ BST <T> & BST <T> :: operator = (const std::initializer_list<T>& il)
 template <typename T>
 BST <T> & BST <T> :: operator = (BST <T> && rhs)
 {
+   clear();
+   
+   swap(rhs);
    return *this;
 }
-
 /*********************************************
  * BST :: SWAP
  * Swap two trees
@@ -332,9 +343,14 @@ BST <T> & BST <T> :: operator = (BST <T> && rhs)
 template <typename T>
 void BST <T> :: swap (BST <T>& rhs)
 {
-
+   BNode * tempRoot = rhs.root;
+   rhs.root = root;
+   root = tempRoot;
+   
+   size_t tempElements = rhs.numElements;
+   rhs.numElements = numElements;
+   numElements = tempElements;
 }
-
 /*****************************************************
  * BST :: INSERT
  * Insert a node at a given location in the tree
@@ -370,7 +386,9 @@ typename BST <T> ::iterator BST <T> :: erase(iterator & it)
 template <typename T>
 void BST <T> ::clear() noexcept
 {
-
+   root->clear(root);
+    numElements = 0;
+    root= nullptr;
 }
 
 /*****************************************************
@@ -380,7 +398,15 @@ void BST <T> ::clear() noexcept
 template <typename T>
 typename BST <T> :: iterator custom :: BST <T> :: begin() const noexcept
 {
-   return end();
+   if(empty())
+      return end();
+   BNode * currentNode = root;
+   
+   while(currentNode->pLeft)
+   {
+      currentNode = currentNode->pLeft;
+   }
+   return iterator(currentNode);
 }
 
 
@@ -391,6 +417,18 @@ typename BST <T> :: iterator custom :: BST <T> :: begin() const noexcept
 template <typename T>
 typename BST <T> :: iterator BST<T> :: find(const T & t)
 {
+   BNode * currentNode = root;
+   
+   while(currentNode != NULL)
+   {
+      if(currentNode->data == t)
+         return iterator(currentNode);
+      
+      else if( t < currentNode->data)
+         currentNode = currentNode->pLeft;
+      else
+         currentNode = currentNode->pRight;
+   }
    return end();
 }
 
@@ -410,7 +448,7 @@ typename BST <T> :: iterator BST<T> :: find(const T & t)
 template <typename T>
 void BST <T> :: BNode :: addLeft (BNode * pNode)
 {
-
+   pLeft= pNode;
 }
 
 /******************************************************
@@ -420,7 +458,7 @@ void BST <T> :: BNode :: addLeft (BNode * pNode)
 template <typename T>
 void BST <T> :: BNode :: addRight (BNode * pNode)
 {
-
+   pRight = pNode;
 }
 
 /******************************************************
@@ -430,7 +468,7 @@ void BST <T> :: BNode :: addRight (BNode * pNode)
 template <typename T>
 void BST<T> :: BNode :: addLeft (const T & t)
 {
-
+   pLeft = new BNode(t);
 }
 
 /******************************************************
@@ -440,7 +478,7 @@ void BST<T> :: BNode :: addLeft (const T & t)
 template <typename T>
 void BST<T> ::BNode::addLeft(T && t)
 {
-
+   pLeft = new BNode(std::move(t));
 }
 
 /******************************************************
@@ -450,7 +488,7 @@ void BST<T> ::BNode::addLeft(T && t)
 template <typename T>
 void BST <T> :: BNode :: addRight (const T & t)
 {
-
+   pRight = new BNode(t);
 }
 
 /******************************************************
@@ -460,7 +498,44 @@ void BST <T> :: BNode :: addRight (const T & t)
 template <typename T>
 void BST <T> ::BNode::addRight(T && t)
 {
+   pRight = new BNode(std::move(t));
+}
 
+template <typename T>
+void BST<T>:: BNode :: clear(BNode *&pThis)
+{
+   if(pThis== nullptr)
+      return;
+   
+   clear(pThis->pLeft);
+   clear(pThis->pRight);
+   delete pThis;
+   pThis = nullptr;
+
+}
+
+
+template <typename T>
+void BST <T>:: BNode:: assign(BNode * &pDest, const BNode *pSrc)
+{
+   if(pSrc == nullptr)
+   {
+      clear(pDest);
+      return;
+   }
+   
+   if(pDest== nullptr)
+      pDest = new BNode(pSrc->data);
+   else
+      pDest->data = pSrc->data;
+   
+   assign(pDest->pLeft, pSrc->pLeft); // L
+   if(pSrc->pLeft)
+      pDest->pLeft->pParent = pDest;
+   
+   assign(pDest->pRight, pSrc->pRight); // R
+   if(pSrc->pRight)
+      pDest->pRight->pParent = pDest;
 }
 
 

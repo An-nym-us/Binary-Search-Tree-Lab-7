@@ -30,7 +30,7 @@
 #include <memory>     // for std::allocator
 #include <functional> // for std::less
 #include <utility>    // for std::pair
-
+#include <stdio.h>
 class TestBST; // forward declaration for unit tests
 class TestMap;
 class TestSet;
@@ -166,8 +166,18 @@ public:
    // 
    // Status
    //
-   bool isRightChild(BNode * pNode) const { return true; }
-   bool isLeftChild( BNode * pNode) const { return true; }
+   bool isRightChild(BNode * pNode) const {
+      if(pNode->pRight == nullptr && pNode->pParent->pRight == pNode)
+         return true;
+      
+      return false;
+   }
+   bool isLeftChild( BNode * pNode) const {
+      if(pNode->pLeft == nullptr && pNode->pParent->pLeft == pNode)
+         return true;
+      
+      return false;
+   }
 
    //
    // Data
@@ -224,14 +234,19 @@ public:
    // de-reference. Cannot change because it will invalidate the BST
    const T & operator * () const 
    {
-      return *(new T);
+      return pNode->data;
    }
 
    // increment and decrement
    iterator & operator ++ ();
    iterator   operator ++ (int postfix)
    {
-      return *this;
+      iterator old = *this;
+      
+//      if(pNode->pLeft != NULL)
+//         pNode = pNode-> pLeft;
+      
+      return old;
    }
    iterator & operator -- ();
    iterator   operator -- (int postfix)
@@ -376,7 +391,111 @@ std::pair<typename BST <T> ::iterator, bool> BST <T> ::insert(T && t, bool keepU
 template <typename T>
 typename BST <T> ::iterator BST <T> :: erase(iterator & it)
 {  
-   return end();
+   BNode * currentNode = root;
+   
+   while(currentNode != nullptr)
+   {
+      if(currentNode->data == it.pNode->data)
+      {
+         // Case No Child
+         if(currentNode->pRight == nullptr && currentNode->pLeft == nullptr)
+         {
+            if(currentNode->pParent != nullptr && currentNode->pParent->pRight == currentNode)
+            {
+               currentNode->pParent->pRight = nullptr;
+            }
+            
+            if(currentNode->pParent != nullptr && currentNode->pParent->pLeft == currentNode)
+            {
+               currentNode->pParent->pLeft = nullptr;
+            }
+            numElements--;
+            BNode * returnNode = currentNode;
+            delete currentNode;
+            return returnNode;
+         }
+         
+         // Case One Child
+      if(currentNode->pRight == NULL && currentNode->pLeft != NULL)
+      {
+         currentNode->pLeft->pParent = currentNode->pParent;
+         
+         if(currentNode->pParent != NULL && currentNode->pParent->pRight == currentNode)
+         {
+            currentNode->pParent->pRight = currentNode->pLeft;
+         }
+         if(currentNode->pParent != NULL && currentNode->pParent->pLeft == currentNode)
+         {
+            currentNode->pParent->pLeft = currentNode->pLeft;
+         }
+         numElements--;
+         delete currentNode;
+         break;
+      }
+         
+      if(currentNode->pLeft == NULL && currentNode->pRight != NULL)
+         {
+            currentNode->pRight->pParent = currentNode->pParent;
+            
+            if(currentNode->pParent != NULL && currentNode->pParent->pRight == currentNode)
+            {
+               currentNode->pParent->pRight = currentNode->pRight;
+            }
+            if(currentNode->pParent != NULL && currentNode->pParent->pLeft == currentNode)
+            {
+               currentNode->pParent->pLeft = currentNode->pRight;
+            }
+            numElements--;
+            delete currentNode;
+            break;
+         }
+         
+         
+         // Case Two Childs
+         if(currentNode->pLeft!= nullptr && currentNode->pRight != nullptr)
+         {
+            BNode * tempNode = currentNode->pRight;
+            while(tempNode->pLeft != NULL)
+            {
+               tempNode = tempNode->pLeft;
+            }
+
+            BNode * deleteNode = currentNode;
+
+            if(tempNode->pRight!= NULL)
+            {
+               tempNode->pRight->pParent = tempNode->pParent;
+               tempNode->pParent->pLeft = tempNode->pRight;
+            }
+            
+            currentNode->pParent->pLeft = tempNode;
+            currentNode->pParent->pLeft->pParent = deleteNode->pParent;
+            // LEFT CHILD
+            currentNode->pParent->pLeft->pLeft = deleteNode->pLeft;
+            currentNode->pParent->pLeft->pLeft->pParent = currentNode->pParent->pLeft;
+            
+            // RIGHT CHILD
+            
+            currentNode->pParent->pLeft->pRight = deleteNode->pRight;
+            currentNode->pParent->pLeft->pRight->pParent = currentNode->pParent->pLeft;
+            
+         
+            numElements--;
+            delete deleteNode;
+            break;
+            
+         }
+  
+   
+      } else if (it.pNode->data < currentNode->data)
+      {
+         currentNode = currentNode->pLeft;
+      }
+      else {
+         currentNode= currentNode->pRight;
+      }
+   }
+   return nullptr;
 }
 
 /*****************************************************
@@ -387,8 +506,8 @@ template <typename T>
 void BST <T> ::clear() noexcept
 {
    root->clear(root);
-    numElements = 0;
-    root= nullptr;
+   numElements = 0;
+   root= nullptr;
 }
 
 /*****************************************************
@@ -555,6 +674,41 @@ void BST <T>:: BNode:: assign(BNode * &pDest, const BNode *pSrc)
 template <typename T>
 typename BST <T> :: iterator & BST <T> :: iterator :: operator ++ ()
 {
+//   if(pNode->isRightChild(pNode))
+//   {
+//      BNode *
+//   }
+   if(pNode == NULL)
+   {
+      pNode = nullptr;
+   }
+
+   else if(pNode->pRight != NULL)
+   {
+      pNode = pNode->pRight;
+      while(pNode->pLeft)
+      {
+         pNode = pNode->pLeft;
+      }
+ 
+   }
+   
+   else if(pNode->pRight == NULL && pNode->pParent->pLeft == pNode)
+      pNode = pNode->pParent;
+   
+   else if(pNode->pRight == NULL && pNode->pParent->pRight == pNode)
+   {
+      while(pNode->pParent && pNode->pParent->pRight == pNode)
+      {
+         pNode = pNode->pParent;
+      }
+    
+         pNode = pNode->pParent;
+   }
+   else {
+      pNode = nullptr;
+   }
+      
    return *this;  
 }
 

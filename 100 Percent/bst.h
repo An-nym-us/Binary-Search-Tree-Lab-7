@@ -14,7 +14,7 @@
  *        BST                 : A class that represents a binary search tree
  *        BST::iterator       : An iterator through BST
  * Author
- *    <your names here>
+ *    Jonathan Gunderson and Sulav Dahal
  ************************************************************************/
 
 #pragma once
@@ -373,6 +373,62 @@ void BST <T> :: swap (BST <T>& rhs)
 template <typename T>
 std::pair<typename BST <T> :: iterator, bool> BST <T> :: insert(const T & t, bool keepUnique)
 {
+   BNode* currentNode = root;
+   bool found = false;
+   
+   while (!found && currentNode != nullptr)
+   {
+      if (keepUnique == false)
+      {
+         BNode* newNode = new BNode(t);
+         if (newNode->data < currentNode->data)
+         {
+
+            currentNode->pLeft = newNode;
+            newNode->pParent = root;
+            numElements += 1;
+            found = true;
+            std::pair<iterator, bool> pairReturn( newNode, true);
+            return pairReturn;
+
+         }
+         else
+         {
+            currentNode->pRight = newNode;
+            newNode->pParent = root;
+            numElements += 1;
+            found = true;
+            std::pair<iterator, bool> pairReturn( newNode, true);
+            return pairReturn;
+         }
+      }
+      else
+      {
+         if (t == currentNode->data)
+         {
+            found = true;
+            std::pair<iterator, bool> pairReturn( currentNode, false);
+            return pairReturn;
+         }
+         else if (t < currentNode->data)
+         {
+            if (currentNode->pLeft != nullptr)
+            {
+               currentNode = currentNode->pLeft;
+            }
+         }
+         else
+         {
+            if (currentNode->pRight != nullptr)
+            {
+               currentNode = currentNode->pRight;
+            }
+         }
+      }
+
+
+   }
+   
    std::pair<iterator, bool> pairReturn(end(), false);
    return pairReturn;
 }
@@ -380,6 +436,63 @@ std::pair<typename BST <T> :: iterator, bool> BST <T> :: insert(const T & t, boo
 template <typename T>
 std::pair<typename BST <T> ::iterator, bool> BST <T> ::insert(T && t, bool keepUnique)
 {
+   BNode* currentNode = root;
+   bool found = false;
+   
+   while (!found && currentNode != nullptr)
+   {
+      if (keepUnique == false)
+      {
+    
+         if (t < currentNode->data)
+         {
+            BNode* newNode = new BNode(std::move(t));
+            currentNode->pLeft = newNode;
+            newNode->pParent = root;
+            numElements += 1;
+            found = true;
+            std::pair<iterator, bool> pairReturn( newNode, true);
+            return pairReturn;
+
+         }
+         else
+         {
+            BNode* newNode = new BNode(std::move(t));
+            currentNode->pRight = newNode;
+            newNode->pParent = currentNode;
+            numElements += 1;
+            found = true;
+            std::pair<iterator, bool> pairReturn( newNode, true);
+            return pairReturn;
+         }
+      }
+      else
+      {
+         if (t == currentNode->data)
+         {
+            found = true;
+            std::pair<iterator, bool> pairReturn( currentNode, false);
+            return pairReturn;
+         }
+         else if (t < currentNode->data)
+         {
+            if (currentNode->pLeft != nullptr)
+            {
+               currentNode = currentNode->pLeft;
+            }
+         }
+         else
+         {
+            if (currentNode->pRight != nullptr)
+            {
+               currentNode = currentNode->pRight;
+            }
+         }
+      }
+
+
+   }
+   
    std::pair<iterator, bool> pairReturn(end(), false);
    return pairReturn;
 }
@@ -390,111 +503,122 @@ std::pair<typename BST <T> ::iterator, bool> BST <T> ::insert(T && t, bool keepU
  ************************************************/
 template <typename T>
 typename BST <T> ::iterator BST <T> :: erase(iterator & it)
-{  
-   BNode * currentNode = root;
+{
    
-   while(currentNode != nullptr)
-   {
-      if(currentNode->data == it.pNode->data)
+   if(it.pNode == nullptr)
+      return end();
+   // Case No Child
+   if(it.pNode->pRight == NULL && it.pNode->pLeft == NULL)
       {
-         // Case No Child
-         if(currentNode->pRight == nullptr && currentNode->pLeft == nullptr)
+         BNode * temp = nullptr;
+         if(it.pNode->pParent != NULL && it.pNode->pParent->pRight == it.pNode)
          {
-            if(currentNode->pParent != nullptr && currentNode->pParent->pRight == currentNode)
-            {
-               currentNode->pParent->pRight = nullptr;
-            }
-            
-            if(currentNode->pParent != nullptr && currentNode->pParent->pLeft == currentNode)
-            {
-               currentNode->pParent->pLeft = nullptr;
-            }
-            numElements--;
-            BNode * returnNode = currentNode;
-            delete currentNode;
-            return returnNode;
+            it.pNode->pParent->pRight = NULL;
          }
-         
-         // Case One Child
-      if(currentNode->pRight == NULL && currentNode->pLeft != NULL)
-      {
-         currentNode->pLeft->pParent = currentNode->pParent;
-         
-         if(currentNode->pParent != NULL && currentNode->pParent->pRight == currentNode)
+         if(it.pNode->pParent != NULL && it.pNode->pParent->pLeft == it.pNode)
          {
-            currentNode->pParent->pRight = currentNode->pLeft;
-         }
-         if(currentNode->pParent != NULL && currentNode->pParent->pLeft == currentNode)
-         {
-            currentNode->pParent->pLeft = currentNode->pLeft;
+            ++it;
+            temp = it.pNode->pLeft;
+            it.pNode->pLeft = NULL;
          }
          numElements--;
-         delete currentNode;
-         break;
-      }
-         
-      if(currentNode->pLeft == NULL && currentNode->pRight != NULL)
-         {
-            currentNode->pRight->pParent = currentNode->pParent;
-            
-            if(currentNode->pParent != NULL && currentNode->pParent->pRight == currentNode)
-            {
-               currentNode->pParent->pRight = currentNode->pRight;
-            }
-            if(currentNode->pParent != NULL && currentNode->pParent->pLeft == currentNode)
-            {
-               currentNode->pParent->pLeft = currentNode->pRight;
-            }
-            numElements--;
-            delete currentNode;
-            break;
-         }
-         
-         
-         // Case Two Childs
-         if(currentNode->pLeft!= nullptr && currentNode->pRight != nullptr)
-         {
-            BNode * tempNode = currentNode->pRight;
-            while(tempNode->pLeft != NULL)
-            {
-               tempNode = tempNode->pLeft;
-            }
-
-            BNode * deleteNode = currentNode;
-
-            if(tempNode->pRight!= NULL)
-            {
-               tempNode->pRight->pParent = tempNode->pParent;
-               tempNode->pParent->pLeft = tempNode->pRight;
-            }
-            
-            currentNode->pParent->pLeft = tempNode;
-            currentNode->pParent->pLeft->pParent = deleteNode->pParent;
-            // LEFT CHILD
-            currentNode->pParent->pLeft->pLeft = deleteNode->pLeft;
-            currentNode->pParent->pLeft->pLeft->pParent = currentNode->pParent->pLeft;
-            
-            // RIGHT CHILD
-            
-            currentNode->pParent->pLeft->pRight = deleteNode->pRight;
-            currentNode->pParent->pLeft->pRight->pParent = currentNode->pParent->pLeft;
-            
-         
-            numElements--;
-            delete deleteNode;
-            break;
-            
-         }
-  
-   
-      } else if (it.pNode->data < currentNode->data)
-      {
-         currentNode = currentNode->pLeft;
-      }
-      else {
-         currentNode= currentNode->pRight;
-      }
+         delete temp;
+         return it;
    }
+   // Case One Child
+   if(it.pNode->pRight == NULL && it.pNode->pLeft != NULL)
+   {
+      BNode * temp = nullptr;
+      it.pNode->pLeft->pParent = it.pNode->pParent;
+      
+      if(it.pNode->pParent != NULL && it.pNode->pParent->pRight == it.pNode)
+      {
+         temp = it.pNode;
+         it.pNode->pParent->pRight = it.pNode->pLeft;
+      }
+      
+      if(it.pNode->pParent != NULL && it.pNode->pParent->pLeft == it.pNode)
+      {
+         temp = it.pNode;
+         it.pNode->pParent->pLeft = it.pNode->pLeft;
+      }
+      
+      ++it;
+      numElements--;
+      delete temp;
+      return it;
+   }
+   // has Right Child
+   if(it.pNode->pLeft == NULL && it.pNode->pRight != NULL)
+   {
+      BNode * temp = nullptr;
+      it.pNode->pRight->pParent = it.pNode->pParent;
+      
+      if(it.pNode->pParent != NULL && it.pNode->pParent->pRight == it.pNode)
+      {
+         temp = it.pNode;
+         it.pNode->pParent->pRight = it.pNode->pRight;
+      }
+      
+      if(it.pNode->pParent != NULL && it.pNode->pParent->pLeft == it.pNode)
+      {
+         temp = it.pNode;
+         it.pNode->pParent->pLeft = it.pNode->pRight;
+      }
+      
+      ++it;
+      numElements--;
+      delete temp;
+      return it;
+   }
+
+   
+   // Case TWO CHILD
+   
+   if(it.pNode->pLeft != NULL && it.pNode->pRight != NULL)
+   {
+      BNode * tempNode = it.pNode->pRight;
+      while(tempNode->pLeft != NULL)
+      {
+         tempNode = tempNode->pLeft;
+      }
+
+      BNode * deleteNode = it.pNode;
+
+      if(tempNode->pRight!= NULL)
+      {
+         tempNode->pRight->pParent = tempNode->pParent;
+         tempNode->pParent->pLeft = tempNode->pRight;
+      }
+      
+      it.pNode->pParent->pLeft = tempNode;
+      it.pNode->pParent->pLeft->pParent = deleteNode->pParent;
+      
+      // LEFT CHILD
+      it.pNode->pParent->pLeft->pLeft = deleteNode->pLeft;
+      it.pNode->pParent->pLeft->pLeft->pParent = it.pNode->pParent->pLeft;
+      
+      // RIGHT CHILD
+      
+      it.pNode->pParent->pLeft->pRight = deleteNode->pRight;
+      it.pNode->pParent->pLeft->pRight->pParent = it.pNode->pParent->pLeft;
+      
+   
+
+      numElements--;
+      ++it;
+      delete deleteNode;
+      if(it.pNode>= tempNode)
+        it.pNode = tempNode;
+      
+      return it;
+   }
+ 
+   
+   
+   
+   
+   
    return nullptr;
 }
 
